@@ -7,7 +7,7 @@ import pymysql
 class MyConnect():
     def __init__(self):
         conn_cfg = {
-            'host': '',
+            'host': 'localhost',
             'user': '',
             'password': '',
             'db': ''

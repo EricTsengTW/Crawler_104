@@ -220,3 +220,44 @@ class Crawler:
         saved["福利制度"] = data["data"]["welfare"].replace("\n", "").replace("\t", "").replace("\r", "").strip()
 
         return saved
+
+    ### 爬取產業類別資訊 | output:dataframe ###
+    def industry_category(url):
+        df = pd.DataFrame(columns=["產業中類", "中類編號", "產業小類", "小類編號", "連結網址"])
+
+        # 找到內容網址
+        head = {'User-Agent': 'Mozilla/5.0'}
+        res = requests.get(url, headers=head)
+        res.encoding = "utf8"  # 避免python以ISO-8859-1輸出亂碼
+        html = BeautifulSoup(res.text)
+
+        # 爬取產業類型資訊
+        category_all_list = html.find("div", id="industry").find_all("ul", class_="cate-list")
+        for all in category_all_list:
+            category_m_list = all.find_all("a")
+            for cate_m in category_m_list:
+                url2 = "https://www.104.com.tw" + cate_m["href"]
+                res2 = requests.get(url2, headers=head)
+                res2.encoding = "utf8"
+                html2 = BeautifulSoup(res2.text)
+                category_list = html2.find("div", id="industry").find("div", class_="second-step").find("ul",
+                                                                                                        class_="cate-list").find_all(
+                    "a")
+                for cate in category_list:
+                    category_m = cate_m.text
+                    category_m_no = cate_m["no"]
+                    category = cate.text
+                    category_no = cate["no"]
+                    category_link = "https://www.104.com.tw" + cate["href"]
+                    data = {"產業中類": category_m,
+                            "中類編號": category_m_no,
+                            "產業小類": category,
+                            "小類編號": category_no,
+                            "連結網址": category_link
+                            }
+
+                    # 放入表格中
+                    df = df.append(data, ignore_index=True)
+                    print("中類", category_m, "小類", category, "完成")
+
+        return df
